@@ -1,4 +1,4 @@
 /admin/*               /admin/index.html          200
-/.netlify/functions/*  /index.html                200
-/.netlify/identity/*   /index.html                200
+/api/*                 /.netlify/functions/:splat 200
+/identity/*            /index.html                200
 /*                     /index.html                200
