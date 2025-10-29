@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: arukode/my-portfolio-site
+  repo: arukode/my-portfolio-new
   branch: main
   base_url: https://api.netlify.com
   auth_endpoint: auth
