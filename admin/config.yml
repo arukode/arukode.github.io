@@ -2,9 +2,6 @@ backend:
   name: github
   repo: arukode/my-portfolio-new
   branch: main
-  base_url: https://monogrit.netlify.app
-  auth_endpoint: /.netlify/functions/auth
-  publish_mode: editorial_workflow
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
