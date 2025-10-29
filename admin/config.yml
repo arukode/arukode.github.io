@@ -1,8 +1,10 @@
 backend:
   name: github
-  repo: arukode/my-portfolio-site   # ← replace with your GitHub repo
-  branch: main                         # or 'master', depending on your setup
-  auth_scope: repo
+  repo: arukode/my-portfolio-site
+  branch: main
+  base_url: https://api.netlify.com
+  auth_endpoint: auth
+  site_domain: arukode.github.io
   open_authoring: true
 
 media_folder: "images/uploads"
@@ -15,7 +17,6 @@ collections:
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { name: "title", label: "Title" }
+      - { name: "title", label: "Title", widget: "string" }
       - { name: "date", label: "Date", widget: "datetime" }
-      - { name: "image", label: "Featured Image", widget: "image", required: false }
       - { name: "body", label: "Body", widget: "markdown" }
