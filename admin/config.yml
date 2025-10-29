@@ -1,14 +1,10 @@
 backend:
-  name: github
-  repo: arukode/my-portfolio-new
+  name: git-gateway
   branch: main
-  base_url: https://api.netlify.com
-  auth_endpoint: auth
-  site_domain: arukode.github.io
   publish_mode: editorial_workflow
 
-media_folder: "images/uploads"
-public_folder: "/images/uploads"
+media_folder: "images/uploads"  # where uploaded images will be stored in the repo
+public_folder: "/images/uploads"  # how those images are accessed in the site
 
 collections:
   - name: "blog"
