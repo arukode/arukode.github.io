@@ -1,7 +1,9 @@
 backend:
   name: github
-  repo: your-username/your-repo-name   # ← replace with your GitHub repo
+  repo: arukode/my-portfolio-site   # ← replace with your GitHub repo
   branch: main                         # or 'master', depending on your setup
+  auth_scope: repo
+  open_authoring: true
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
