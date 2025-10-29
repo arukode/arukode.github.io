@@ -2,6 +2,9 @@ backend:
   name: github
   repo: arukode/my-portfolio-new
   branch: main
+  base_url: https://monogrit.vercel.app/
+  auth_endpoint: api/auth
+
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
