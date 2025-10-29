@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/arukode/my-portfolio-new#readme",
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.7.0"
   }
 }
