@@ -6,6 +6,7 @@ backend:
   auth_endpoint: auth
   site_domain: arukode.github.io
   open_authoring: true
+  publish_mode: editorial_workflow
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
