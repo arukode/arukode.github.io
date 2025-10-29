@@ -1,0 +1,19 @@
+backend:
+  name: github
+  repo: your-username/your-repo-name   # ← replace with your GitHub repo
+  branch: main                         # or 'master', depending on your setup
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "blog"
+    label: "Blog"
+    folder: "posts"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { name: "title", label: "Title" }
+      - { name: "date", label: "Date", widget: "datetime" }
+      - { name: "image", label: "Featured Image", widget: "image", required: false }
+      - { name: "body", label: "Body", widget: "markdown" }
