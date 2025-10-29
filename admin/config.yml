@@ -5,7 +5,6 @@ backend:
   base_url: https://api.netlify.com
   auth_endpoint: auth
   site_domain: arukode.github.io
-  open_authoring: true
   publish_mode: editorial_workflow
 
 media_folder: "images/uploads"
