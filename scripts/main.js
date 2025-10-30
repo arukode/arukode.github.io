@@ -70,16 +70,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- Logo resets to About ---
-  if (logo) {
-    logo.addEventListener("click", e => {
-      e.preventDefault();
-      buttons.forEach(b => b.classList.remove("active"));
-      buttons[0].classList.add("active");
-      moveUnderline(buttons[0]);
-      showSection("about");
-    });
-  }
+// --- Logo redirects to hidden Home section ---
+if (logo) {
+  logo.addEventListener("click", e => {
+    e.preventDefault();
+
+    // Find a button to keep underline logic consistent (optional)
+    buttons.forEach(b => b.classList.remove("active"));
+    underline.style.width = "0"; // hide underline when on Home
+
+    showSection("home");
+  });
+}
 
   // --- Reposition underline on resize ---
   window.addEventListener("resize", () => {
