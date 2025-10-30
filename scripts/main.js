@@ -1,13 +1,26 @@
+// main.js (drop-in replacement)
+// Page switching + GSAP + Snipcart integration
+// NOTE: Removed any automatic "close cart" logic on item add / nav clicks.
+// Cart will remain open unless the user closes it (ESC still works).
+
 document.addEventListener("DOMContentLoaded", () => {
   const sections = document.querySelectorAll(".page-section");
   const buttons = document.querySelectorAll(".nav-btn");
   const underline = document.querySelector(".nav-underline");
   const logo = document.getElementById("logo");
+
+  // pick current active section or fallback to #home
   let current = document.querySelector(".page-section.active");
   if (!current) {
-  current = document.getElementById("home");
-  current.classList.add("active");
-}
+    const home = document.getElementById("home");
+    if (home) {
+      current = home;
+      home.classList.add("active");
+    } else {
+      current = sections[0];
+      if (current) current.classList.add("active");
+    }
+  }
   let animating = false;
 
   // --- Move underline to active button ---
@@ -29,22 +42,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     animating = true;
 
-    // --- Prepare target for animation ---
-    target.style.display = "flex";       // make sure it's in layout
-    target.style.visibility = "visible"; // renderable for layout
+    // Prepare
+    target.style.display = "flex";
+    target.style.visibility = "visible";
     target.style.zIndex = 2;
-
-    // prepare its start state
     gsap.set(target, { opacity: 0, xPercent: 8 });
 
-    // current stays above for the fade-out
     current.style.zIndex = 3;
 
-    // --- Run animation ---
     const tl = gsap.timeline({
       defaults: { duration: 0.5, ease: "power2.inOut" },
       onComplete: () => {
-        // cleanup and swap
         current.style.display = "none";
         current.style.visibility = "hidden";
         current.classList.remove("active");
@@ -57,10 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // animate out old, fade in new
     tl.to(current, { opacity: 0, xPercent: -8 })
       .set(current, { zIndex: 1 })
-      .to(target, { opacity: 1, xPercent: 0 }, "-=0.05"); // slight overlap for smoothness
+      .to(target, { opacity: 1, xPercent: 0 }, "-=0.05");
   }
 
   // --- Navigation buttons ---
@@ -74,18 +81,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-// --- Logo redirects to hidden Home section ---
-if (logo) {
-  logo.addEventListener("click", e => {
-    e.preventDefault();
-
-    // Find a button to keep underline logic consistent (optional)
-    buttons.forEach(b => b.classList.remove("active"));
-    underline.style.width = "0"; // hide underline when on Home
-
-    showSection("home");
-  });
-}
+  // --- Logo goes to hidden Home (no underline) ---
+  if (logo) {
+    logo.addEventListener("click", (e) => {
+      e.preventDefault();
+      buttons.forEach(b => b.classList.remove("active"));
+      const u = document.querySelector(".nav-underline");
+      if (u) { u.style.width = "0"; u.style.left = "0"; }
+      showSection("home");
+    });
+  }
 
   // --- Reposition underline on resize ---
   window.addEventListener("resize", () => {
@@ -94,159 +99,107 @@ if (logo) {
   });
 });
 
+/* ----------------------------
+   Snipcart handling (NO auto-close)
+   ----------------------------
+   - No auto-closing on item.added or nav clicks.
+   - Update cart UI (count + bump) when Snipcart state changes.
+   - ESC will still close the cart if the user presses it.
+*/
 
- // ----------------------------
-// Snipcart: reliable ESC + nav-close logic (fixed version)
-// ----------------------------
 (function () {
-  const debug = true;
-  function dlog(...args) { if (debug) console.log('[SNIPCART CTRL]', ...args); }
+  const debug = false;
+  function dlog(...args) { if (debug) console.log('[SNIPCART]', ...args); }
 
-  function tryCloseCart() {
+  function isCartOpen() {
     try {
-      if (window.Snipcart?.api?.theme?.cart) {
-        window.Snipcart.api.theme.cart.close();
-        dlog('Closed via Snipcart.api.theme.cart.close()');
-        return true;
-      }
-    } catch (e) { dlog('theme.cart.close failed', e); }
-
-    try {
-      if (window.Snipcart?.api?.modal?.close) {
-        window.Snipcart.api.modal.close();
-        dlog('Closed via Snipcart.api.modal.close()');
-        return true;
-      }
-    } catch (e) { dlog('modal.close failed', e); }
-
-    const closeBtn = document.querySelector('.snipcartclose, .snipcart-close, .snipcartclose-btn, [data-close]');
-    if (closeBtn) {
-      closeBtn.click();
-      dlog('Closed via clicking internal close button', closeBtn);
-      return true;
+      const bodyHas = document.body.classList.contains('snipcart-cart--opened') ||
+                      document.body.classList.contains('snipcart-checkout') ||
+                      document.body.classList.contains('snipcart-open');
+      const cartNodes = document.querySelectorAll('snipcart-cart, .snipcart, .snipcart__container, .snipcart-modal');
+      const visible = Array.from(cartNodes).some(n => n instanceof Element && n.offsetParent !== null);
+      const result = bodyHas || visible;
+      dlog('isCartOpen ->', result);
+      return result;
+    } catch (e) {
+      return false;
     }
-
-    const overlay = document.querySelector('snipcart-cart, .snipcart, .snipcart__container, .snipcart-modal');
-    if (overlay) {
-      overlay.style.display = 'none';
-      dlog('Force-hidden Snipcart overlay element', overlay);
-      return true;
-    }
-
-    dlog('No successful close method found');
-    return false;
   }
 
-function isCartOpen() {
-  // Check both body classes and actual DOM visibility
-  const cartElem = document.querySelector('snipcart-cart, .snipcart, .snipcartcontainer, .snipcart-cartcontainer');
-  const isVisible = cartElem && (
-    cartElem.offsetParent !== null ||
-    getComputedStyle(cartElem).visibility !== 'hidden' &&
-    getComputedStyle(cartElem).opacity > 0
-  );
+  function wireCartUI() {
+    const cartIcon = document.querySelector('.cart-icon');
+    const cartCount = document.querySelector('.cart-count');
 
-  const checks = [
-    document.body.classList.contains('snipcart-cart--opened'),
-    document.body.classList.contains('snipcart-checkout'),
-    document.body.classList.contains('snipcart-open'),
-    isVisible
-  ];
+    if (!window.Snipcart || !Snipcart.store) return;
 
-  const result = checks.some(Boolean);
-  console.log('[SNIPCART CTRL] isCartOpen ->', result, { visible: isVisible });
-  return result;
-}
+    Snipcart.store.subscribe(() => {
+      try {
+        const state = Snipcart.store.getState();
+        const count = (state && state.cart && state.cart.items && state.cart.items.count) ? state.cart.items.count : 0;
+        if (cartCount) cartCount.textContent = count;
 
-  function attachControls() {
-    dlog('Attaching Snipcart controls');
-
-    document.querySelectorAll('.nav-btn, #logo, .nav a').forEach(el => {
-      el.addEventListener('click', () => setTimeout(() => {
-        if (isCartOpen()) tryCloseCart();
-      }, 120));
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' || e.key === 'Esc') {
-        if (isCartOpen()) {
-          const ok = tryCloseCart();
-          if (!ok) dlog('ESC pressed but closing failed');
+        if (cartIcon) {
+          cartIcon.classList.add('cart-bump');
+          setTimeout(() => cartIcon.classList.remove('cart-bump'), 420);
         }
+      } catch (e) {
+        dlog('store subscribe err', e);
       }
     });
-
-    document.addEventListener('snipcart.open', () => dlog('event: snipcart.open'));
-    document.addEventListener('snipcart.close', () => dlog('event: snipcart.close'));
   }
 
-  function waitForSnipcartThenAttach(maxWait = 8000) {
+  function attachHandlers() {
+    try {
+      if (window.Snipcart && window.Snipcart.events) {
+        // We do NOT close the cart on item.added anymore.
+        // But we still wire UI updates and ESC close for manual control.
+
+        // Keep ESC to manually close cart (accessibility)
+        window.addEventListener('keydown', (e) => {
+          if ((e.key === 'Escape' || e.key === 'Esc') && isCartOpen()) {
+            try {
+              if (window.Snipcart && window.Snipcart.api && window.Snipcart.api.theme && typeof window.Snipcart.api.theme.cart.close === 'function') {
+                window.Snipcart.api.theme.cart.close();
+                dlog('ESC: closed cart via theme API');
+              }
+            } catch (err) {
+              dlog('ESC: failed to close via API', err);
+            }
+          }
+        });
+
+        wireCartUI();
+      }
+    } catch (err) {
+      dlog('attachHandlers error', err);
+    }
+  }
+
+  function waitForSnipcart(maxWait = 8000) {
     let attached = false;
 
     function safeAttach() {
       if (attached) return;
       attached = true;
-      attachControls();
+      attachHandlers();
     }
 
     document.addEventListener('snipcart.ready', safeAttach);
 
-    const interval = setInterval(() => {
-      if (window.Snipcart && window.Snipcart.api) {
-        clearInterval(interval);
+    const poll = setInterval(() => {
+      if (window.Snipcart && window.Snipcart.events && window.Snipcart.api) {
+        clearInterval(poll);
         safeAttach();
       }
-    }, 300);
+    }, 250);
 
     setTimeout(() => {
       if (!attached) {
-        clearInterval(interval);
-        dlog('Timeout waiting for Snipcart, attaching anyway');
+        clearInterval(poll);
         safeAttach();
       }
     }, maxWait);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => waitForSnipcartThenAttach());
-  } else {
-    waitForSnipcartThenAttach();
-  }
-
-  window.__snipcartForceClose = tryCloseCart;
+  waitForSnipcart();
 })();
-
-document.addEventListener('snipcart.ready', () => {
-  const cartIcon = document.querySelector('.cart-icon');
-  const cartCount = document.querySelector('.cart-count');
-
-  Snipcart.store.subscribe(() => {
-    const state = Snipcart.store.getState();
-    const count = state.cart.items.count;
-
-    if (count !== undefined && cartCount) {
-      cartCount.textContent = count;
-
-      // Animate the icon on item addition
-      cartIcon.classList.add('cart-bump');
-      cartCount.classList.add('cart-pop');
-
-      setTimeout(() => {
-        cartIcon.classList.remove('cart-bump');
-        cartCount.classList.remove('cart-pop');
-      }, 400);
-    }
-  });
-});
-
-document.addEventListener('snipcart.ready', () => {
-  Snipcart.events.on('item.added', (item) => {
-    Snipcart.api.theme.cart.close(); // prevent auto-opening
-  });
-});
-
-window.addEventListener('scroll', () => {
-  const header = document.querySelector('header.navbar');
-  if (window.scrollY > 10) header.classList.add('scrolled');
-  else header.classList.remove('scrolled');
-});
