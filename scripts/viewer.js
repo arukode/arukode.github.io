@@ -208,6 +208,14 @@ function createThumbnail(el, modelPath) {
       if (modal.parentNode) modal.parentNode.removeChild(modal);
     };
 
+    // Allow ESC key to close modal
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+      cleanup();
+      if (modal.parentNode) modal.parentNode.removeChild(modal);
+      }
+      });
+
     modal.appendChild(panel);
     panel.appendChild(closeBtn);
     document.body.appendChild(modal);
