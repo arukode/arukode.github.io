@@ -1,0 +1,69 @@
+/* Header integration */
+header.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  z-index: 1000;
+}
+
+/* Clean logo, no glow, no crop */
+.logo img {
+  height: 56px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Navigation style — minimalist, flat, clean */
+.nav button {
+  background: none;
+  border: none;
+  color: #f0f0f0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.nav button:hover {
+  color: #ffcc00;
+  transform: translateY(-1px);
+}
+
+.nav .active {
+  color: #ffcc00;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+}
+
+/* Remove any accidental line or border */
+header.navbar {
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Prevent anti-alias seam at the top */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #000;
+  z-index: 9999;
+  pointer-events: none;
+}
