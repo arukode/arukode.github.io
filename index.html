@@ -3,18 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Portfolio</title>
+  <title>MONO</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Snipcart styles -->
+  <link rel="stylesheet" href="https://cdn.snipcart.com/themes/v3.6.0/default/snipcart.css" />
+
+  <!-- Snipcart script -->
+  <script async src="https://cdn.snipcart.com/themes/v3.6.0/default/snipcart.js"></script>
+
 </head>
 
 <body>
   <header class="navbar">
-    <div id="logo" class="logo"><span class="logo-circle">A</span></div>
+    <div id="logo" class="logo"><span class="logo-circle">M</span></div>
     <nav class="nav">
       <button class="nav-btn active" data-target="about">About</button>
       <button class="nav-btn" data-target="gallery">Gallery</button>
-      <button class="nav-btn" data-target="blog">Blog</button>
       <button class="nav-btn" data-target="shop">Shop</button>
+
+      <button class="snipcart-checkout btn">Cart</button>
+
       <span class="nav-underline"></span>
     </nav>
   </header>
@@ -28,33 +37,104 @@
       <div class="gallery-grid">
         <img src="images/art1.webp" alt="Artwork 1" class="gallery-item">
         <img src="images/art2.webp" alt="Artwork 2" class="gallery-item">
-        <div class="gallery-item model-viewer" data-model="models/Duck.glb">
-          <img src="images/duck-thumb.jpg" alt="3D Duck preview">
-        </div>
+        <div class="gallery-item model-viewer" data-model="models/Duck.glb"></div>
+        <img src="images/art3.jpg" alt="Artwork 3" class="gallery-item">
+        <img src="images/art4.gif" alt="Artwork 4" class="gallery-item">
+        <img src="images/art5.jpg" alt="Artwork 5" class="gallery-item">
+        <img src="images/art6.gif" alt="Artwork 6" class="gallery-item">
       </div>
     </section>
 
-    <section id="blog" class="page-section">
-      <h1>Blog</h1>
-      <p>Thoughts, stories, and creative experiments.</p>
-    </section>
-
     <section id="shop" class="page-section">
-      <h1>Shop</h1>
-      <p>Prints and original pieces available soon.</p>
-    </section>
+  <div class="shop-inner">
+    <h1>Shop — Originals & prints</h1>
+    <p class="shop-lead">One-of-a-kind originals and fine prints. Click an item to view details and add to cart.</p>
+
+    <div class="products-grid">
+      <!-- Example product — ORIGINAL PAINTING (physical, one-of-a-kind) -->
+      <article class="product-card">
+        <img class="product-thumb" src="images/art2.webp" alt="Forest Dreams — original painting">
+        <div class="product-body">
+          <h3 class="product-title">Forest Dreams (Original)</h3>
+          <p class="product-desc">Acrylic on canvas, 40×50 cm. Signed. Framed.</p>
+          <div class="product-meta">
+            <span class="price">€350.00</span>
+            <button 
+              class="snipcart-add-item btn"
+              data-item-id="painting-forest-dreams"
+              data-item-price="350.00"
+              data-item-url="/shop#forest-dreams"
+              data-item-description="Acrylic on canvas, 40x50cm. Signed. Framed."
+              data-item-image="images/art2.webp"
+              data-item-name="Forest Dreams (Original)"
+              data-item-max-quantity="1"
+              data-item-shippable="true"
+            >
+              Add to cart
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Example product — PRINT -->
+      <article class="product-card">
+        <img class="product-thumb" src="images/art2.webp" alt="Forest Dreams — print">
+        <div class="product-body">
+          <h3 class="product-title">Forest Dreams — Fine Art Print</h3>
+          <p class="product-desc">Giclée print, 30×40 cm, signed. Ships worldwide.</p>
+          <div class="product-meta">
+            <span class="price">€45.00</span>
+            <button
+              class="snipcart-add-item btn"
+              data-item-id="print-forest-dreams"
+              data-item-price="45.00"
+              data-item-url="/shop#forest-dreams-print"
+              data-item-description="Giclée print, 30x40 cm, signed."
+              data-item-image="images/art2.webp"
+              data-item-name="Forest Dreams — Fine Art Print"
+              data-item-max-quantity="5"
+              data-item-shippable="true">
+              Add to cart
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Example product — DIGITAL (PDF sketchbook) -->
+      <article class="product-card">
+        <img class="product-thumb" src="images/art1.webp" alt="Sketchbook PDF">
+        <div class="product-body">
+          <h3 class="product-title">Sketchbook PDF</h3>
+          <p class="product-desc">Digital sketchbook — immediate download after purchase.</p>
+          <div class="product-meta">
+            <span class="price">$8.00</span>
+            <button
+              class="snipcart-add-item btn"
+              data-item-id="sketchbook-pdf"
+              data-item-price="8.00"
+              data-item-url="/shop#sketchbok"
+              data-item-description="Downloadable PDF sketchbook."
+              data-item-image="images/art1.webp"
+              data-item-name="Sketchbook PDF"
+              data-item-shippable="false"
+            >
+              Add to cart
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Add more products here by copying a product-card and changing data attributes -->
+    </div>
+
+    <p class="shop-note">Tip: Originals are one-of-a-kind — I set max quantity to 1 for those.</p>
+  </div>
+</section>
+
   </main>
 
-<!-- Lightbox overlay for gallery images -->
-<div class="lightbox hidden" id="lightbox">
-  <button class="lightbox-close" id="lightbox-close">×</button>
-  <button class="lightbox-prev" id="lightbox-prev">←</button>
-  <img id="lightbox-img" src="" alt="Expanded view">
-  <button class="lightbox-next" id="lightbox-next">→</button>
-</div>
 
-
-  <footer>
+ <footer>
     <p>© 2025 My Portfolio</p>
   </footer>
 
@@ -69,6 +149,13 @@
 <script src="scripts/viewer.js"></script>
 <script src="scripts/gallery.js"></script>
 
+<div hidden
+  id="snipcart"
+  data-api-key="YTA4ZTUyNWYtZTVmNi00NjVkLTk1YjktNTI5N2VkZTJlOWEwNjM4OTczNTgwMDc2MTIyMTcx"
+  data-config-modal-style="side"
+  data-autopop="false"
+  data-router="false">
+</div>
 
 </body>
 </html>

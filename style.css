@@ -94,10 +94,10 @@ html, body {
 main {
   position: relative;
   width: 100%;
-  min-height: calc(100vh - 120px);
+  min-height: 100vh;
   padding-top: 90px; /* matches header height */
-  padding-bottom: 70px; /* matches footer height */
-  overflow: hidden;
+  padding-bottom: 40px; /* space for footer */
+  overflow: visible; /* allow cart overlay visibility */
 }
 
 .page-section {
@@ -142,9 +142,126 @@ main {
   font-size: 1.1rem;
 }
 
+/* --- INITIAL SECTION VISIBILITY FIX --- */
+.page-section {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.page-section.active {
+  display: flex;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---- Shop layout ---- */
+.shop-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.shop-lead {
+  color: #ccc;
+  margin-bottom: 1.25rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.product-card {
+  background: #0f0f0f;
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.product-thumb {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.product-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.product-title {
+  font-size: 1.05rem;
+  margin: 0;
+  color: #fff;
+}
+
+.product-desc {
+  font-size: 0.95rem;
+  color: #bbb;
+  flex: 1;
+}
+
+.product-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.price {
+  font-weight: 700;
+  color: #fff;
+}
+
+.btn {
+  background: #ffb400;
+  color: #000;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn:hover {
+  filter: brightness(0.95);
+}
+
+/* --- FIX SHOP SECTION LAYOUT --- */
+#shop.page-section {
+  position: relative; /* stop absolute positioning */
+  display: block; /* allow normal flow */
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  min-height: 100vh;
+  padding: 6rem 0 5rem; /* space for navbar & footer */
+  overflow-y: auto;
+}
+
+#shop .shop-inner {
+  margin-top: 2rem;
+}
+
+
+/* responsive */
+@media (max-width: 640px) {
+  .product-thumb { height: 160px; }
+}
+
 /* --- FOOTER --- */
 footer {
-  position: fixed;
+  position: relative; /* was fixed */
   bottom: 0;
   left: 0;
   width: 100%;
@@ -155,7 +272,8 @@ footer {
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
+  z-index: 2;
+  margin-top: 3rem; /* spacing after content */
 }
 
 /* --- MOBILE RESPONSIVE --- */
@@ -290,15 +408,6 @@ footer {
   z-index: 1000;
 }
 
-.lightbox img,
-.lightbox canvas {
-  max-width: 90vw;
-  max-height: 80vh;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto;
-}
-
 /* --- 3D MODAL --- */
 .model-modal-overlay {
   position: fixed;
@@ -350,59 +459,107 @@ footer {
   display: block;
 }
 
-/* optional lightbox consistency */
-.lightbox img,
-.lightbox canvas {
-  max-width: 90vw;
-  max-height: 80vh;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto;
-}
-
-/* --- LIGHTBOX OVERLAY & CONTROLS --- */
-.lightbox {
+/* === LIGHTBOX FIXED LAYOUT & ANIMATION (FINALIZED) === */
+#lightbox {
+  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+#lightbox[aria-hidden="false"] {
+  display: flex;
+}
+
+#lb-inner {
+  position: relative;
+  width: 90vw;
+  height: 90vh;
+  max-width: 1100px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  overflow: hidden;
 }
 
-.lightbox.hidden {
-  display: none;
-}
-
-.lightbox button {
+/* --- FIXED LIGHTBOX IMAGE POSITIONING --- */
+#lightbox img {
   position: absolute;
-  background: rgba(0, 0, 0, 0.5);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.45s ease, opacity 0.45s ease;
+  opacity: 0;
+}
+
+/* the currently visible image */
+#lightbox img.active {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* incoming images start just offscreen horizontally */
+#lightbox img.enter-from-right {
+  transform: translate(150%, -50%);
+  opacity: 1;
+}
+#lightbox img.enter-from-left {
+  transform: translate(-250%, -50%);
+  opacity: 1;
+}
+
+/* outgoing images slide out smoothly */
+#lightbox img.exit-to-left {
+  transform: translate(-250%, -50%);
+  opacity: 0;
+}
+#lightbox img.exit-to-right {
+  transform: translate(150%, -50%);
+  opacity: 0;
+}
+
+/* navigation buttons */
+#lightbox button {
+  background: rgba(20, 20, 20, 0.8);
+  color: #fff;
   border: none;
-  color: #ffb400;
-  font-size: 2rem;
   cursor: pointer;
-  padding: 10px 15px;
   border-radius: 6px;
-  transition: background 0.3s ease;
+  padding: 8px 10px;
+  transition: background 0.2s ease;
+  z-index: 11;
+}
+#lightbox button:hover {
+  background: rgba(255, 180, 0, 0.9);
+  color: #000;
 }
 
-.lightbox button:hover {
-  background: rgba(255, 180, 0, 0.3);
+/* close + arrows positions */
+#lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
 }
-
-.lightbox-close {
-  top: 20px;
-  right: 25px;
-  font-size: 2.4rem;
+#lightbox-prev {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
-
-.lightbox-prev {
-  left: 40px;
-}
-
-.lightbox-next {
-  right: 40px;
+#lightbox-next {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* --- VISUAL POLISH --- */
@@ -410,7 +567,8 @@ footer {
 /* 1. Prevent unwanted horizontal and vertical scrollbars */
 html, body {
   overflow-x: hidden;
-  overflow-y: overlay; /* keeps scrollbar from shifting layout */
+  overflow-y: auto; /* keeps scrollbar from shifting layout */
+  height: 100%;
 }
 
 /* 2. Make the navbar background opaque enough to hide the scrollbar */
@@ -431,4 +589,42 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* --- SNIPCART FIXES --- */
+#snipcart {
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+.snipcart-cart,
+.snipcart-layout,
+.snipcart-modal {
+  z-index: 9999 !important;
+}
+
+body.snipcart-open .navbar {
+  opacity: 0.8;
+  pointer-events: none; /* prevent double-click bugs */
+}
+
+body.snipcart-open footer {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* restore navbar + footer after cart closes */
+body:not(.snipcart-open) .navbar,
+body:not(.snipcart-open) footer {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+/* --- FINAL FIX: make sure footer is gone when Snipcart is open --- */
+body.snipcart-open footer {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
