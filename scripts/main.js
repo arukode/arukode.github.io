@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const underline = document.querySelector(".nav-underline");
   const logo = document.getElementById("logo");
   let current = document.querySelector(".page-section.active");
+  if (!current) {
+  current = document.getElementById("home");
+  current.classList.add("active");
+}
   let animating = false;
 
   // --- Move underline to active button ---

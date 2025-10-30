@@ -94,3 +94,49 @@ body::before {
   z-index: 1;
   pointer-events: none;
 }
+
+/* Navbar positioning fix for mobile */
+header.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+/* Make sure body starts below header */
+body {
+  margin: 0;
+  padding-top: 60px; /* adjust depending on your header height */
+  background: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* On very small screens */
+@media (max-width: 600px) {
+  header.navbar {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+  }
+
+  .nav {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .nav-btn {
+    font-size: 0.9rem;
+  }
+
+  #logo img {
+    max-height: 28px; /* ensures the gif never overflows */
+  }
+}
