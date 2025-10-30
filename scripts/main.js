@@ -244,3 +244,9 @@ document.addEventListener('snipcart.ready', () => {
     Snipcart.api.theme.cart.close(); // prevent auto-opening
   });
 });
+
+window.addEventListener('scroll', () => {
+  const header = document.querySelector('header.navbar');
+  if (window.scrollY > 10) header.classList.add('scrolled');
+  else header.classList.remove('scrolled');
+});
