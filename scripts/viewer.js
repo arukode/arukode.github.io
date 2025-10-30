@@ -40,7 +40,8 @@
   // create a renderer with device pixel ratio guard
   function createRenderer({ width, height, antialias = true, alpha = true }) {
     const r = new THREE.WebGLRenderer({ antialias, alpha });
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     r.setPixelRatio(dpr);
     r.setSize(width, height, false);
     return r;
@@ -48,6 +49,20 @@
 
   // initialize a thumbnail scene inside a given element, returns controller object
   function createThumbnail(el, modelPath) {
+    // ensure renderer resizes properly when element becomes visible
+    const resizeObserver = new ResizeObserver(() => {
+    const w = canvasHolder.clientWidth;
+    const h = canvasHolder.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    });
+    resizeObserver.observe(canvasHolder);
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+    setTimeout(animate, 300); // delay render start to allow layout stabilization
+    } else {
+    animate();
+    }
     // container for the thumbnail canvas
     const canvasHolder = document.createElement('div');
     canvasHolder.className = 'model-thumb-canvas';
@@ -85,6 +100,12 @@
       controls.autoRotate = true;
       controls.autoRotateSpeed = 1.0;
       controls.target.set(0, 0, 0);
+
+      controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_PAN
+      };
+
       controls.update();
     }
 
@@ -201,6 +222,12 @@
       controls.dampingFactor = 0.07;
       controls.enablePan = true;
       controls.autoRotate = false;
+
+    
+      controls.touches = {
+        ONE: THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN
+      };
     }
 
     // lights
