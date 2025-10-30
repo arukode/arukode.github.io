@@ -120,7 +120,7 @@ body {
 }
 
 /* On very small screens */
-@media (max-width: 600px) {
+  @media (max-width: 600px) {
   header.navbar {
     flex-direction: row;
     justify-content: space-between;
@@ -129,14 +129,30 @@ body {
 
   .nav {
     display: flex;
+    flex-wrap: wrap; /* allow wrapping if space runs out */
     gap: 0.8rem;
+    justify-content: center; /* optional: makes it look balanced */
   }
 
   .nav-btn {
     font-size: 0.9rem;
+    flex: 1 1 auto; /* helps distribute space evenly */
+    text-align: center;
   }
 
   #logo img {
-    max-height: 28px; /* ensures the gif never overflows */
+    max-height: 28px;
   }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto; /* allows horizontal scroll if items overflow */
+  scrollbar-width: none; /* hides scrollbars on Firefox */
+}
+.nav::-webkit-scrollbar {
+  display: none; /* hides scrollbars on WebKit browsers */
 }
