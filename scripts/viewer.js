@@ -118,6 +118,11 @@ function createThumbnail(el, modelPath) {
     modelPath,
     (gltf) => {
       modelRoot = gltf.scene;
+      console.log("Model loaded, children:", modelRoot.children.length);
+      console.log("Camera position:", camera.position);
+      console.log("Renderer size:", renderer.domElement.width, renderer.domElement.height);
+      console.log("WebGLRenderer context:", renderer.getContext());
+      console.log("Supports WebGL2:", !!renderer.getContext().getParameter);
       console.log("Model loaded successfully on:", /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop");
       scene.add(modelRoot);
 
@@ -142,6 +147,7 @@ function createThumbnail(el, modelPath) {
     } else if (modelRoot) {
       modelRoot.rotation.y += 0.008;
     }
+    if (!renderer.info) console.log("Renderer info unavailable");
     if (renderer.info.render.frame === 0) console.log("First frame rendered");
     renderer.render(scene, camera);
   }
