@@ -163,12 +163,6 @@ function createThumbnail(el, modelPath) {
     dispose,
     openModal: () => openModalViewer(modelPath)
   };
-
-    return {
-      holder: canvasHolder,
-      dispose,
-      openModal: () => openModalViewer(modelPath)
-    };
   }
 
   // Create and open a modal viewer (bigger)
