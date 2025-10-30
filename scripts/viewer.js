@@ -3,6 +3,7 @@
 // Safe checks for OrbitControls / GLTFLoader being either globals or properties on THREE.
 
 (function () {
+  console.log("Viewer script loaded, userAgent:", navigator.userAgent);
   // small helper to pick available controls/loader
   const ControlsClass = (typeof OrbitControls !== 'undefined') ? OrbitControls
     : (THREE && THREE.OrbitControls) ? THREE.OrbitControls
@@ -117,6 +118,7 @@ function createThumbnail(el, modelPath) {
     modelPath,
     (gltf) => {
       modelRoot = gltf.scene;
+      console.log("Model loaded successfully on:", /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop");
       scene.add(modelRoot);
 
       const { size } = centerModel(modelRoot);
@@ -140,6 +142,7 @@ function createThumbnail(el, modelPath) {
     } else if (modelRoot) {
       modelRoot.rotation.y += 0.008;
     }
+    if (renderer.info.render.frame === 0) console.log("First frame rendered");
     renderer.render(scene, camera);
   }
 
