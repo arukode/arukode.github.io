@@ -48,121 +48,121 @@
   }
 
   // initialize a thumbnail scene inside a given element, returns controller object
-  function createThumbnail(el, modelPath) {
-    // ensure renderer resizes properly when element becomes visible
-    const resizeObserver = new ResizeObserver(() => {
+function createThumbnail(el, modelPath) {
+  // container for the thumbnail canvas
+  const canvasHolder = document.createElement('div');
+  canvasHolder.className = 'model-thumb-canvas';
+  canvasHolder.style.width = THUMB_SIZE + 'px';
+  canvasHolder.style.height = THUMB_SIZE + 'px';
+  canvasHolder.style.display = 'inline-block';
+  canvasHolder.style.verticalAlign = 'middle';
+  canvasHolder.style.overflow = 'hidden';
+  canvasHolder.style.borderRadius = '10px';
+  canvasHolder.style.background = '#111';
+  canvasHolder.style.cursor = 'pointer';
+
+  // replace any text content
+  el.innerHTML = '';
+  el.appendChild(canvasHolder);
+
+  // --- Scene setup ---
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x111111);
+
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+  camera.position.set(0, 0, 3);
+
+  const renderer = createRenderer({ width: THUMB_SIZE, height: THUMB_SIZE });
+  canvasHolder.appendChild(renderer.domElement);
+
+  // --- Resize handling AFTER canvas exists ---
+  const resizeObserver = new ResizeObserver(() => {
     const w = canvasHolder.clientWidth;
     const h = canvasHolder.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    });
-    resizeObserver.observe(canvasHolder);
-    if (/Mobi|Android/i.test(navigator.userAgent)) {
-    setTimeout(animate, 300); // delay render start to allow layout stabilization
-    } else {
-    animate();
-    }
-    // container for the thumbnail canvas
-    const canvasHolder = document.createElement('div');
-    canvasHolder.className = 'model-thumb-canvas';
-    canvasHolder.style.width = THUMB_SIZE + 'px';
-    canvasHolder.style.height = THUMB_SIZE + 'px';
-    canvasHolder.style.display = 'inline-block';
-    canvasHolder.style.verticalAlign = 'middle';
-    canvasHolder.style.overflow = 'hidden';
-    canvasHolder.style.borderRadius = '10px';
-    canvasHolder.style.background = '#111';
-    canvasHolder.style.cursor = 'pointer';
+  });
+  resizeObserver.observe(canvasHolder);
 
-    // replace any text content (like "Interactive 3D Sculpture")
-    el.innerHTML = '';
-    el.appendChild(canvasHolder);
+  // --- Controls setup ---
+  const controls = ControlsClass ? new ControlsClass(camera, renderer.domElement) : null;
+  if (controls) {
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.0;
+    controls.target.set(0, 0, 0);
+    controls.update();
 
-    // scene
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x111111);
-
-    // camera sized to square thumbnail
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
-    camera.position.set(0, 0, 3);
-
-    // renderer
-    const renderer = createRenderer({ width: THUMB_SIZE, height: THUMB_SIZE });
-    canvasHolder.appendChild(renderer.domElement);
-
-    // controls (optional — if not present, we still rotate automatically)
-    const controls = ControlsClass ? new ControlsClass(camera, renderer.domElement) : null;
-    if (controls) {
-      controls.enableDamping = true;
-      controls.enablePan = false;
-      controls.enableZoom = false;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 1.0;
-      controls.target.set(0, 0, 0);
-
-      controls.touches = {
+    // 👇 Add this touch controls fix for mobile
+    controls.touches = {
       ONE: THREE.TOUCH.ROTATE,
       TWO: THREE.TOUCH.DOLLY_PAN
-      };
+    };
+  }
 
+  // --- Lighting ---
+  const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+  const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+  dir.position.set(3, 4, 3);
+  scene.add(ambient, dir);
+
+  // --- Load model ---
+  const loader = new GLTFLoaderClass();
+  let modelRoot = null;
+
+  loader.load(
+    modelPath,
+    (gltf) => {
+      modelRoot = gltf.scene;
+      scene.add(modelRoot);
+
+      const { size } = centerModel(modelRoot);
+      const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+      const fov = camera.fov * (Math.PI / 180);
+      const distance = Math.abs(maxDim / Math.sin(fov / 2)) * 0.8;
+      camera.position.set(0, 0, distance);
+      camera.lookAt(0, 0, 0);
+      if (controls) controls.update();
+    },
+    undefined,
+    (err) => console.error('Thumbnail model load error:', err)
+  );
+
+  // --- Animation ---
+  let rafId = null;
+  function animate() {
+    rafId = requestAnimationFrame(animate);
+    if (controls) {
       controls.update();
+    } else if (modelRoot) {
+      modelRoot.rotation.y += 0.008;
     }
+    renderer.render(scene, camera);
+  }
 
-    // lights
-    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
-    dir.position.set(3, 4, 3);
-    scene.add(ambient, dir);
-
-    // load model
-    const loader = new GLTFLoaderClass();
-    let modelRoot = null;
-
-    loader.load(
-      modelPath,
-      (gltf) => {
-        modelRoot = gltf.scene;
-        scene.add(modelRoot);
-
-        const { size } = centerModel(modelRoot);
-
-        // fit camera distance to model size
-        const maxDim = Math.max(size.x, size.y, size.z, 0.001);
-        const fov = camera.fov * (Math.PI / 180);
-        // distance formula for perspective camera to fit bounding sphere
-        const distance = Math.abs(maxDim / Math.sin(fov / 2)) * 0.8;
-        camera.position.set(0, 0, distance);
-        camera.lookAt(0, 0, 0);
-        if (controls) controls.update();
-      },
-      undefined,
-      (err) => {
-        console.error('Thumbnail model load error:', err);
-      }
-    );
-
-    // animation loop
-    let rafId = null;
-    function animate() {
-      rafId = requestAnimationFrame(animate);
-      if (controls) {
-        controls.update();
-      } else if (modelRoot) {
-        // rotate slowly if no interactive controls available
-        modelRoot.rotation.y += 0.008;
-      }
-      renderer.render(scene, camera);
-    }
+  // --- Mobile render delay ---
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    setTimeout(animate, 300);
+  } else {
     animate();
+  }
 
-    // cleanup helper
-    function dispose() {
-      if (rafId) cancelAnimationFrame(rafId);
-      renderer.dispose();
-      // remove canvas
-      if (renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
+  // cleanup helper
+  function dispose() {
+    if (rafId) cancelAnimationFrame(rafId);
+    renderer.dispose();
+    if (renderer.domElement && renderer.domElement.parentNode)
+      renderer.domElement.parentNode.removeChild(renderer.domElement);
+  }
+
+  return {
+    holder: canvasHolder,
+    dispose,
+    openModal: () => openModalViewer(modelPath)
+  };
 
     return {
       holder: canvasHolder,
