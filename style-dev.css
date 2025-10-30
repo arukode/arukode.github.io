@@ -1,18 +1,29 @@
-/* Header integration */
+/* === HEADER BASE === */
 header.navbar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: transparent;
+  height: 64px; /* consistent height */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 0 1.5rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
   z-index: 1000;
+  transition: background 0.3s ease, backdrop-filter 0.3s ease;
 }
 
-/* Clean logo, no glow, no crop */
+/* fade-in background on scroll */
+header.navbar.scrolled {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+/* === LOGO === */
 .logo img {
   height: 56px;
   width: auto;
@@ -20,7 +31,19 @@ header.navbar {
   display: block;
 }
 
-/* Navigation style — minimalist, flat, clean */
+/* === NAVIGATION === */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
 .nav button {
   background: none;
   border: none;
@@ -42,20 +65,21 @@ header.navbar {
   color: #ffcc00;
 }
 
+/* === BODY === */
 html, body {
   margin: 0;
   padding: 0;
   background: #000;
+  color: #fff;
+  overflow-x: hidden;
 }
 
-/* Remove any accidental line or border */
-header.navbar {
-  border: none;
-  outline: none;
-  box-shadow: none;
+/* ensures content starts below navbar */
+body {
+  padding-top: 64px;
 }
 
-/* Prevent anti-alias seam at the top */
+/* anti-alias seam prevention */
 body::before {
   content: "";
   position: fixed;
@@ -68,95 +92,32 @@ body::before {
   pointer-events: none;
 }
 
-/* Uniform layout baseline for all page sections */
+/* === PAGE SECTIONS === */
 .page-section {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 100vh; /* fill screen height */
+  min-height: 100vh;
   display: flex;
-  align-items: center; /* vertically center content */
+  align-items: center;
   justify-content: center;
-  background: #000; /* consistent dark backdrop */
+  background: #000;
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-/* Ensure active section is visible and above others */
 .page-section.active {
   opacity: 1;
   z-index: 2;
 }
 
-/* Hide inactive sections fully */
 .page-section:not(.active) {
   opacity: 0;
   z-index: 1;
   pointer-events: none;
 }
 
-/* Navbar positioning fix for mobile */
-header.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  padding: 0.8rem 1.5rem;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 1000;
-}
-
-/* Make sure body starts below header */
-body {
-  margin: 0;
-  padding-top: 60px; /* adjust depending on your header height */
-  background: #000;
-  color: #fff;
-  overflow-x: hidden;
-}
-
-/* On very small screens */
-  @media (max-width: 600px) {
-  header.navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-  }
-
-  .nav {
-    display: flex;
-    flex-wrap: wrap; /* allow wrapping if space runs out */
-    gap: 0.8rem;
-    justify-content: center; /* optional: makes it look balanced */
-  }
-
-  .nav-btn {
-    font-size: 0.9rem;
-    flex: 1 1 auto; /* helps distribute space evenly */
-    text-align: center;
-  }
-
-  #logo img {
-    max-height: 28px;
-  }
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: nowrap;
-  overflow-x: auto; /* allows horizontal scroll if items overflow */
-  scrollbar-width: none; /* hides scrollbars on Firefox */
-}
-.nav::-webkit-scrollbar {
-  display: none; /* hides scrollbars on WebKit browsers */
-}
-
+/* === CART ICON === */
 .cart-icon {
   position: relative;
   cursor: pointer;
@@ -187,4 +148,42 @@ body {
   border-radius: 50%;
   min-width: 16px;
   text-align: center;
+}
+
+/* cart animations */
+@keyframes bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.2); }
+  60% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.cart-bump { animation: bump 0.4s ease; }
+.cart-pop { animation: pop 0.3s ease; }
+
+/* === MOBILE RESPONSIVE === */
+@media (max-width: 600px) {
+  header.navbar {
+    padding: 0.5rem 1rem;
+  }
+
+  .nav {
+    gap: 0.8rem;
+  }
+
+  .nav-btn {
+    font-size: 0.9rem;
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .logo img {
+    height: 40px;
+  }
 }

@@ -215,3 +215,32 @@ function isCartOpen() {
 
   window.__snipcartForceClose = tryCloseCart;
 })();
+
+document.addEventListener('snipcart.ready', () => {
+  const cartIcon = document.querySelector('.cart-icon');
+  const cartCount = document.querySelector('.cart-count');
+
+  Snipcart.store.subscribe(() => {
+    const state = Snipcart.store.getState();
+    const count = state.cart.items.count;
+
+    if (count !== undefined && cartCount) {
+      cartCount.textContent = count;
+
+      // Animate the icon on item addition
+      cartIcon.classList.add('cart-bump');
+      cartCount.classList.add('cart-pop');
+
+      setTimeout(() => {
+        cartIcon.classList.remove('cart-bump');
+        cartCount.classList.remove('cart-pop');
+      }, 400);
+    }
+  });
+});
+
+document.addEventListener('snipcart.ready', () => {
+  Snipcart.events.on('item.added', (item) => {
+    Snipcart.api.theme.cart.close(); // prevent auto-opening
+  });
+});
