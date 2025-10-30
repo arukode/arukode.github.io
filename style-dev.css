@@ -156,3 +156,35 @@ body {
 .nav::-webkit-scrollbar {
   display: none; /* hides scrollbars on WebKit browsers */
 }
+
+.cart-icon {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-svg {
+  width: 26px;
+  height: 26px;
+  transition: transform 0.2s ease;
+}
+
+.cart-icon:hover .cart-svg {
+  transform: scale(1.1);
+}
+
+.cart-count {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: #ffcc00;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 50%;
+  min-width: 16px;
+  text-align: center;
+}
