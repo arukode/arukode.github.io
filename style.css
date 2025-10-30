@@ -294,7 +294,7 @@ footer {
 
 /* --- GALLERY SECTION --- */
 #gallery {
-  background: #111;
+  background: #000000;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -349,8 +349,8 @@ footer {
 
 /* Style for 3D model previews */
 .gallery-item.model-viewer {
-  background: #111;
-  border: 1px solid #222;
+  background: #000000;
+  border: 1px solid #000000;
   display: flex;
   align-items: center;
   justify-content: center;
