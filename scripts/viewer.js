@@ -117,6 +117,10 @@ function createThumbnail(el, modelPath) {
   loader.load(
     modelPath,
     (gltf) => {
+      console.log("✅ Model loaded callback triggered on:", navigator.userAgent);
+      console.log("Canvas size:", renderer.domElement.width, renderer.domElement.height);
+      console.log("Device pixel ratio:", window.devicePixelRatio);
+      console.log("WebGLRenderer context test:", renderer.getContext());
       modelRoot = gltf.scene;
       console.log("Model loaded, children:", modelRoot.children.length);
       console.log("Camera position:", camera.position);
