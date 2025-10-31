@@ -1,44 +1,19 @@
-// main.js (drop-in replacement)
-// Page switching + GSAP + Snipcart integration
-// NOTE: Removed any automatic "close cart" logic on item add / nav clicks.
-// Cart will remain open unless the user closes it (ESC still works).
-
+// main.js — smooth transitions, no home-page ghosting
 document.addEventListener("DOMContentLoaded", () => {
   const sections = document.querySelectorAll(".page-section");
   const buttons = document.querySelectorAll(".nav-btn");
   const underline = document.querySelector(".nav-underline");
   const logo = document.getElementById("logo");
+  const overlay = document.querySelector(".page-transition");
 
-  /* ------------------------------
-     PAGE TRANSITION OVERLAY
-     ------------------------------ */
-  const transitionOverlay = document.querySelector(".page-transition");
-  function startTransition(callback) {
-    if (!transitionOverlay) { callback(); return; }
-    transitionOverlay.classList.add("active");
-    transitionOverlay.style.zIndex = "900"; // stays below navbar but above content
-    setTimeout(() => {
-      callback();
-      transitionOverlay.classList.remove("active");
-    }, 500); // must match CSS animation timing
-  }
-  /* ------------------------------ */
-
-  // pick current active section or fallback to #home
   let current = document.querySelector(".page-section.active");
   if (!current) {
-    const home = document.getElementById("home");
-    if (home) {
-      current = home;
-      home.classList.add("active");
-    } else {
-      current = sections[0];
-      if (current) current.classList.add("active");
-    }
+    current = document.getElementById("home") || sections[0];
+    if (current) current.classList.add("active");
   }
+
   let animating = false;
 
-  // --- Move underline to active button ---
   function moveUnderline(btn) {
     if (!underline || !btn) return;
     const { offsetLeft, offsetWidth } = btn;
@@ -49,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const activeBtn = document.querySelector(".nav-btn.active");
   if (activeBtn) moveUnderline(activeBtn);
 
-  // --- Handle section switching ---
   function showSection(id) {
   if (animating) return;
   const target = document.getElementById(id);
@@ -57,47 +31,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   animating = true;
   const overlay = document.querySelector(".page-transition");
-
-  // quick overlay fade-in
   overlay.classList.add("active");
 
-  // start transition almost immediately (after 120 ms)
-  setTimeout(() => {
-    target.style.display = "flex";
-    target.style.visibility = "visible";
-    target.style.zIndex = 2;
-    gsap.set(target, { opacity: 0, xPercent: 8 });
+  // Preload state
+  gsap.set(target, { opacity: 0, xPercent: 8, zIndex: 2, visibility: "visible" });
 
-    current.style.zIndex = 3;
+  const tl = gsap.timeline({
+    defaults: { duration: 0.4, ease: "power2.out" },
+    onComplete: () => {
+      current.classList.remove("active");
+      target.classList.add("active");
 
-    const tl = gsap.timeline({
-      defaults: { duration: 0.35, ease: "power2.out" },
-      onComplete: () => {
-        current.style.display = "none";
-        current.style.visibility = "hidden";
-        current.classList.remove("active");
-        target.classList.add("active");
-        current = target;
+      // Reset states
+      gsap.set(current, { opacity: 0, zIndex: 1, visibility: "hidden" });
+      overlay.classList.remove("active");
+      current = target;
+      animating = false;
+    }
+  });
 
-        // fade overlay back out quickly
-        overlay.classList.remove("active");
-        animating = false;
-      }
-    });
-
-    // prevent layout jump between sections of different heights
-const currentHeight = current.offsetHeight;
-const targetHeight = target.offsetHeight;
-const maxHeight = Math.max(currentHeight, targetHeight);
-document.body.style.height = "";
-
-    tl.to(current, { opacity: 0, xPercent: -5 })
-      .set(current, { zIndex: 1 })
-      .to(target, { opacity: 1, xPercent: 0 }, "-=0.1");
-  }, 120);
+  tl.to(current, { opacity: 0, xPercent: -5 })
+    .to(target, { opacity: 1, xPercent: 0 }, "-=0.2");
 }
 
-  // --- Navigation buttons ---
+  // Navigation buttons
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       if (btn.classList.contains("active")) return;
@@ -108,18 +65,28 @@ document.body.style.height = "";
     });
   });
 
+
   // --- Logo goes to hidden Home (no underline) ---
   if (logo) {
-    logo.addEventListener("click", (e) => {
-      e.preventDefault();
-      buttons.forEach(b => b.classList.remove("active"));
-      const u = document.querySelector(".nav-underline");
-      if (u) { u.style.width = "0"; u.style.left = "0"; }
-      showSection("home");
-    });
-  }
+  logo.addEventListener("click", (e) => {
+    e.preventDefault();
 
-  // --- Reposition underline on resize ---
+    // Remove active highlight from all nav buttons
+    buttons.forEach(b => b.classList.remove("active"));
+
+    // Reset the underline fully
+    if (underline) {
+      underline.style.width = "0";
+      underline.style.left = "0";
+    }
+
+    // Always force show home, even if current === home
+    if (current.id !== "home") {
+      showSection("home");
+    }
+  });
+}
+
   window.addEventListener("resize", () => {
     const active = document.querySelector(".nav-btn.active");
     if (active) moveUnderline(active);
@@ -128,49 +95,41 @@ document.body.style.height = "";
 
 /* ----------------------------
    Snipcart handling (NO auto-close)
-   ----------------------------
-   - No auto-closing on item.added or nav clicks.
-   - Update cart UI (count + bump) when Snipcart state changes.
-   - ESC will still close the cart if the user presses it.
-*/
-
+   ---------------------------- */
 (function () {
   const debug = false;
-  function dlog(...args) { if (debug) console.log('[SNIPCART]', ...args); }
+  const dlog = (...a) => debug && console.log("[SNIPCART]", ...a);
 
   function isCartOpen() {
     try {
-      const bodyHas = document.body.classList.contains('snipcart-cart--opened') ||
-                      document.body.classList.contains('snipcart-checkout') ||
-                      document.body.classList.contains('snipcart-open');
-      const cartNodes = document.querySelectorAll('snipcart-cart, .snipcart, .snipcart__container, .snipcart-modal');
-      const visible = Array.from(cartNodes).some(n => n instanceof Element && n.offsetParent !== null);
-      const result = bodyHas || visible;
-      dlog('isCartOpen ->', result);
-      return result;
-    } catch (e) {
+      const bodyHas = document.body.classList.contains("snipcart-cart--opened")
+        || document.body.classList.contains("snipcart-checkout")
+        || document.body.classList.contains("snipcart-open");
+      const cartNodes = document.querySelectorAll("snipcart-cart, .snipcart, .snipcart__container, .snipcart-modal");
+      const visible = Array.from(cartNodes).some(n => n.offsetParent !== null);
+      return bodyHas || visible;
+    } catch {
       return false;
     }
   }
 
   function wireCartUI() {
-    const cartIcon = document.querySelector('.cart-icon');
-    const cartCount = document.querySelector('.cart-count');
-
+    const cartIcon = document.querySelector(".cart-icon");
+    const cartCount = document.querySelector(".cart-count");
     if (!window.Snipcart || !Snipcart.store) return;
 
     Snipcart.store.subscribe(() => {
       try {
         const state = Snipcart.store.getState();
-        const count = (state && state.cart && state.cart.items && state.cart.items.count) ? state.cart.items.count : 0;
+        const count = state?.cart?.items?.count ?? 0;
         if (cartCount) cartCount.textContent = count;
 
         if (cartIcon) {
-          cartIcon.classList.add('cart-bump');
-          setTimeout(() => cartIcon.classList.remove('cart-bump'), 420);
+          cartIcon.classList.add("cart-bump");
+          setTimeout(() => cartIcon.classList.remove("cart-bump"), 420);
         }
       } catch (e) {
-        dlog('store subscribe err', e);
+        dlog("store subscribe err", e);
       }
     });
   }
@@ -178,48 +137,37 @@ document.body.style.height = "";
   function attachHandlers() {
     try {
       if (window.Snipcart && window.Snipcart.events) {
-        // We do NOT close the cart on item.added anymore.
-        // But we still wire UI updates and ESC close for manual control.
-
-        // Keep ESC to manually close cart (accessibility)
-        window.addEventListener('keydown', (e) => {
-          if ((e.key === 'Escape' || e.key === 'Esc') && isCartOpen()) {
+        window.addEventListener("keydown", e => {
+          if ((e.key === "Escape" || e.key === "Esc") && isCartOpen()) {
             try {
-              if (window.Snipcart && window.Snipcart.api && window.Snipcart.api.theme && typeof window.Snipcart.api.theme.cart.close === 'function') {
-                window.Snipcart.api.theme.cart.close();
-                dlog('ESC: closed cart via theme API');
-              }
+              window.Snipcart.api?.theme?.cart?.close?.();
+              dlog("ESC closed cart");
             } catch (err) {
-              dlog('ESC: failed to close via API', err);
+              dlog("ESC close failed", err);
             }
           }
         });
-
         wireCartUI();
       }
     } catch (err) {
-      dlog('attachHandlers error', err);
+      dlog("attachHandlers error", err);
     }
   }
 
   function waitForSnipcart(maxWait = 8000) {
     let attached = false;
-
-    function safeAttach() {
+    const safeAttach = () => {
       if (attached) return;
       attached = true;
       attachHandlers();
-    }
-
-    document.addEventListener('snipcart.ready', safeAttach);
-
+    };
+    document.addEventListener("snipcart.ready", safeAttach);
     const poll = setInterval(() => {
-      if (window.Snipcart && window.Snipcart.events && window.Snipcart.api) {
+      if (window.Snipcart?.events && window.Snipcart?.api) {
         clearInterval(poll);
         safeAttach();
       }
     }, 250);
-
     setTimeout(() => {
       if (!attached) {
         clearInterval(poll);
