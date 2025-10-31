@@ -16,6 +16,25 @@ html, body {
   scroll-behavior: smooth;
 }
 
+/* Prevent flicker before JS initializes */
+.page-section {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.page-section.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  pointer-events: all;
+}
+
 /* --- HEADER --- */
 .navbar {
   position: fixed;
