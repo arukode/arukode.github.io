@@ -9,6 +9,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const underline = document.querySelector(".nav-underline");
   const logo = document.getElementById("logo");
 
+  /* ------------------------------
+     PAGE TRANSITION OVERLAY
+     ------------------------------ */
+  const transitionOverlay = document.querySelector(".page-transition");
+  function startTransition(callback) {
+    if (!transitionOverlay) { callback(); return; }
+    transitionOverlay.classList.add("active");
+    transitionOverlay.style.zIndex = "900"; // stays below navbar but above content
+    setTimeout(() => {
+      callback();
+      transitionOverlay.classList.remove("active");
+    }, 500); // must match CSS animation timing
+  }
+  /* ------------------------------ */
+
   // pick current active section or fallback to #home
   let current = document.querySelector(".page-section.active");
   if (!current) {
@@ -36,13 +51,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Handle section switching ---
   function showSection(id) {
-    if (animating) return;
-    const target = document.getElementById(id);
-    if (!target || target === current) return;
+  if (animating) return;
+  const target = document.getElementById(id);
+  if (!target || target === current) return;
 
-    animating = true;
+  animating = true;
+  const overlay = document.querySelector(".page-transition");
 
-    // Prepare
+  // quick overlay fade-in
+  overlay.classList.add("active");
+
+  // start transition almost immediately (after 120 ms)
+  setTimeout(() => {
     target.style.display = "flex";
     target.style.visibility = "visible";
     target.style.zIndex = 2;
@@ -51,24 +71,31 @@ document.addEventListener("DOMContentLoaded", () => {
     current.style.zIndex = 3;
 
     const tl = gsap.timeline({
-      defaults: { duration: 0.5, ease: "power2.inOut" },
+      defaults: { duration: 0.35, ease: "power2.out" },
       onComplete: () => {
         current.style.display = "none";
         current.style.visibility = "hidden";
         current.classList.remove("active");
-
         target.classList.add("active");
-        target.style.opacity = 1;
-        target.style.zIndex = 2;
         current = target;
+
+        // fade overlay back out quickly
+        overlay.classList.remove("active");
         animating = false;
       }
     });
 
-    tl.to(current, { opacity: 0, xPercent: -8 })
+    // prevent layout jump between sections of different heights
+const currentHeight = current.offsetHeight;
+const targetHeight = target.offsetHeight;
+const maxHeight = Math.max(currentHeight, targetHeight);
+document.body.style.height = "";
+
+    tl.to(current, { opacity: 0, xPercent: -5 })
       .set(current, { zIndex: 1 })
-      .to(target, { opacity: 1, xPercent: 0 }, "-=0.05");
-  }
+      .to(target, { opacity: 1, xPercent: 0 }, "-=0.1");
+  }, 120);
+}
 
   // --- Navigation buttons ---
   buttons.forEach(btn => {

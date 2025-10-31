@@ -188,3 +188,19 @@ body::before {
     height: 40px;
   }
 }
+
+/* Page transition overlay */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 900;
+  transition: opacity 0.3s ease;
+}
+
+.page-transition.active {
+  opacity: 1;
+  pointer-events: auto;
+}
