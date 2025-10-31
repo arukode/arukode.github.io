@@ -134,9 +134,7 @@ body::before {
 
 /* === PAGE SECTIONS === */
 .page-section {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
   min-height: 100vh;
   display: flex;
@@ -145,6 +143,7 @@ body::before {
   background: #000;
   transition: opacity 0.5s ease, transform 0.5s ease;
   transform: none !important;
+  overflow: hidden;
 }
 
 .page-section.active {
@@ -156,6 +155,7 @@ body::before {
   opacity: 0;
   z-index: 1;
   pointer-events: none;
+  overflow: hidden;
 }
 
 /* === MOBILE === */
